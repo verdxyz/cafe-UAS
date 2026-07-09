@@ -1,0 +1,114 @@
+================================================================================
+🔄 PULL & SEED DI SERVER
+================================================================================
+
+File factory sudah diperbaiki! Sekarang tinggal pull di server dan run seeder.
+
+================================================================================
+LANGKAH-LANGKAH DI SERVER
+================================================================================
+
+# 1. Login ke server
+ssh root@203.175.10.112
+cd /opt/.izzudin/cafe-UAS
+
+# 2. Stash perubahan lokal (jika ada)
+git stash
+
+# 3. Pull perubahan terbaru
+git pull origin main
+
+# 4. Clear cache
+docker-compose exec app php artisan cache:clear
+docker-compose exec app composer dump-autoload
+
+# 5. Run seeder
+docker-compose exec app php artisan migrate:fresh --seed --force
+
+
+================================================================================
+JIKA TIDAK MENGGUNAKAN GIT
+================================================================================
+
+Jika project di server tidak pakai git, upload manual file-file ini:
+
+# Upload dari local ke server:
+scp database/seeders/DatabaseSeeder.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/seeders/
+
+scp database/factories/UserFactory.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/factories/
+
+scp database/factories/MenuFactory.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/factories/
+
+scp database/factories/OrderFactory.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/factories/
+
+scp database/factories/ReservationFactory.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/factories/
+
+scp database/factories/ReviewFactory.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/factories/
+
+# Kemudian di server:
+cd /opt/.izzudin/cafe-UAS
+docker-compose exec app php artisan migrate:fresh --seed --force
+
+
+================================================================================
+VERIFIKASI SETELAH SEEDING
+================================================================================
+
+# Cek jumlah data
+docker-compose exec app php artisan tinker --execute "
+echo '========================================' . PHP_EOL;
+echo 'DATABASE STATISTICS' . PHP_EOL;
+echo '========================================' . PHP_EOL;
+echo 'Users: ' . App\Models\User::count() . PHP_EOL;
+echo '  - Admin: ' . App\Models\User::where('role', 'admin')->count() . PHP_EOL;
+echo '  - Pengunjung: ' . App\Models\User::where('role', 'pengunjung')->count() . PHP_EOL;
+echo 'Menu: ' . App\Models\Menu::count() . PHP_EOL;
+echo '  - Makanan: ' . App\Models\Menu::where('kategori', 'Makanan')->count() . PHP_EOL;
+echo '  - Minuman: ' . App\Models\Menu::where('kategori', 'Minuman')->count() . PHP_EOL;
+echo '  - Snack: ' . App\Models\Menu::where('kategori', 'Snack')->count() . PHP_EOL;
+echo 'Orders: ' . App\Models\Order::count() . PHP_EOL;
+echo 'Reservations: ' . App\Models\Reservation::count() . PHP_EOL;
+echo 'Reviews: ' . App\Models\Review::count() . PHP_EOL;
+echo '========================================' . PHP_EOL;
+"
+
+
+================================================================================
+TEST LOGIN
+================================================================================
+
+# Test Admin Login
+curl -X POST http://203.175.10.112:81/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@cafe.com","password":"admin123"}' | jq .
+
+# Test Get Menu
+curl http://203.175.10.112:81/api/menu | jq .
+
+
+================================================================================
+ADMIN CREDENTIALS
+================================================================================
+
+Email: admin@cafe.com
+Password: admin123
+
+
+================================================================================
+EXPECTED RESULT
+================================================================================
+
+✓ Users: 16 (1 admin + 15 users)
+✓ Menu: 30 items (10 Makanan + 10 Minuman + 10 Snack)
+✓ Orders: ~20-40 items
+✓ Reservations: ~8-16 items
+✓ Reviews: ~12-36 items
+
+
+================================================================================

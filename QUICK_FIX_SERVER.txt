@@ -1,0 +1,92 @@
+================================================================================
+🔧 QUICK FIX - JALANKAN DI SERVER
+================================================================================
+
+PROBLEM: Call to undefined function Database\Factories\fake()
+
+SOLUTION: File sudah diperbaiki di local, tinggal upload ke server!
+
+================================================================================
+LANGKAH 1: UPLOAD FILE DARI LOCAL
+================================================================================
+
+Jalankan di LOCAL MACHINE (bukan di server!):
+
+cd /home/lbi/Documents/joki/cafe-UAS
+
+# Upload DatabaseSeeder
+scp database/seeders/DatabaseSeeder.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/seeders/
+
+# Upload Factory files
+scp database/factories/UserFactory.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/factories/
+
+scp database/factories/MenuFactory.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/factories/
+
+scp database/factories/OrderFactory.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/factories/
+
+scp database/factories/ReservationFactory.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/factories/
+
+scp database/factories/ReviewFactory.php \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/database/factories/
+
+
+================================================================================
+ATAU GUNAKAN SCRIPT UPLOAD (LEBIH MUDAH):
+================================================================================
+
+cd /home/lbi/Documents/joki/cafe-UAS
+chmod +x upload-fixed-files.sh
+./upload-fixed-files.sh
+
+
+================================================================================
+LANGKAH 2: RUN SEEDER DI SERVER
+================================================================================
+
+Setelah upload, jalankan di SERVER:
+
+ssh root@203.175.10.112
+cd /opt/.izzudin/cafe-UAS
+
+# Run seeder
+docker-compose exec app php artisan migrate:fresh --seed --force
+
+
+================================================================================
+LANGKAH 3: VERIFY
+================================================================================
+
+# Cek data
+docker-compose exec app php artisan tinker --execute "
+echo 'Users: ' . App\Models\User::count() . PHP_EOL;
+echo 'Menu: ' . App\Models\Menu::count() . PHP_EOL;
+echo 'Admin: ' . App\Models\User::where('role', 'admin')->count() . PHP_EOL;
+"
+
+# Test login
+curl -X POST http://203.175.10.112:81/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@cafe.com","password":"admin123"}' | jq .
+
+
+================================================================================
+EXPECTED RESULT:
+================================================================================
+
+✓ Users: 16 (1 admin + 15 regular)
+✓ Menu: 30 (10 Makanan + 10 Minuman + 10 Snack)
+✓ Orders: 20-40 (random)
+✓ Reservations: 8-16 (random)
+✓ Reviews: 12-36 (random)
+
+Admin Login:
+✓ Email: admin@cafe.com
+✓ Password: admin123
+
+
+================================================================================

@@ -1,0 +1,103 @@
+================================================================================
+🔧 COPY-PASTE COMMANDS INI DI SERVER (203.175.10.112)
+================================================================================
+
+LANGKAH 1: Install Composer Dependencies
+----------------------------------------
+docker-compose exec app composer install --no-dev --optimize-autoloader
+
+
+LANGKAH 2: Set Permissions
+---------------------------
+docker-compose exec app chown -R www-data:www-data /var/www
+docker-compose exec app chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
+
+LANGKAH 3: Generate APP_KEY
+----------------------------
+docker-compose exec app php artisan key:generate --force
+
+
+LANGKAH 4: Run Migrations
+--------------------------
+docker-compose exec app php artisan migrate --force
+
+
+LANGKAH 5: Cache Configuration
+-------------------------------
+docker-compose exec app php artisan config:cache
+docker-compose exec app php artisan route:cache
+
+
+LANGKAH 6: Buat Admin User
+---------------------------
+docker-compose exec app php artisan tinker --execute "
+\$user = App\Models\User::create([
+    'nama' => 'Admin Cafe',
+    'email' => 'admin@cafe.com',
+    'password' => bcrypt('admin123'),
+    'role' => 'admin'
+]);
+echo 'Admin created: ' . \$user->email;
+"
+
+
+LANGKAH 7: Test API
+--------------------
+curl http://203.175.10.112:81/api/menu
+
+curl -X POST http://203.175.10.112:81/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@cafe.com","password":"admin123"}'
+
+
+================================================================================
+ATAU JALANKAN FIX SCRIPT (Lebih Mudah!)
+================================================================================
+
+# Upload fix-vendor.sh dari local ke server dulu
+# Dari local machine:
+scp /home/lbi/Documents/joki/cafe-UAS/fix-vendor.sh root@203.175.10.112:/opt/.izzudin/cafe-UAS/
+
+# Kemudian di server:
+cd /opt/.izzudin/cafe-UAS
+chmod +x fix-vendor.sh
+./fix-vendor.sh
+
+
+================================================================================
+CATATAN PENTING: PORT APLIKASI
+================================================================================
+
+Aplikasi Anda berjalan di PORT 81, bukan 80!
+
+Akses:
+- Homepage: http://203.175.10.112:81
+- API: http://203.175.10.112:81/api
+
+Jika ingin ganti ke port 80 (tanpa :81):
+1. Edit docker-compose.yml
+2. Ubah "81:80" menjadi "80:80"
+3. Jalankan: docker-compose down && docker-compose up -d
+
+
+================================================================================
+ADMIN CREDENTIALS (Setelah Langkah 6)
+================================================================================
+
+Email: admin@cafe.com
+Password: admin123
+
+⚠️ JANGAN LUPA GANTI PASSWORD setelah login pertama!
+
+
+================================================================================
+CHECK STATUS
+================================================================================
+
+docker-compose ps
+docker-compose logs -f app
+curl http://203.175.10.112:81
+
+
+================================================================================

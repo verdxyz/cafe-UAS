@@ -1,0 +1,88 @@
+================================================================================
+📦 CARA UPLOAD PROJECT KE SERVER VPS
+================================================================================
+
+SERVER INFO:
+- IP: 203.175.10.112
+- User: root
+- Directory: /opt/.izzudin/cafe-UAS
+
+================================================================================
+METODE 1: UPLOAD VIA SCP (Dari Local ke Server)
+================================================================================
+
+# Dari terminal local (bukan di server!):
+scp -r /home/lbi/Documents/joki/cafe-UAS root@203.175.10.112:/opt/.izzudin/
+
+# Atau jika mau exclude node_modules dan vendor:
+rsync -avz --exclude 'node_modules' --exclude 'vendor' \
+  /home/lbi/Documents/joki/cafe-UAS/ \
+  root@203.175.10.112:/opt/.izzudin/cafe-UAS/
+
+================================================================================
+METODE 2: GIT CLONE (Jika sudah push ke repository)
+================================================================================
+
+# 1. Login ke server
+ssh root@203.175.10.112
+
+# 2. Clone repository
+cd /opt/.izzudin
+git clone <your-repository-url> cafe-UAS
+
+# 3. Masuk ke directory
+cd cafe-UAS
+
+================================================================================
+METODE 3: UPLOAD VIA FILEZILLA/WinSCP (GUI)
+================================================================================
+
+1. Buka FileZilla atau WinSCP
+2. Connect ke:
+   - Host: 203.175.10.112
+   - Protocol: SFTP
+   - Port: 22
+   - User: root
+   - Password: <your-password>
+
+3. Navigate ke: /opt/.izzudin/
+4. Upload folder cafe-UAS
+
+================================================================================
+SETELAH UPLOAD, JALANKAN DI SERVER:
+================================================================================
+
+# 1. Login ke server
+ssh root@203.175.10.112
+
+# 2. Masuk ke directory project
+cd /opt/.izzudin/cafe-UAS
+
+# 3. Install Docker (jika belum ada)
+curl -fsSL https://get.docker.com | sh
+apt install docker-compose -y
+
+# 4. Jalankan deployment
+chmod +x deploy.sh create-admin.sh quick-commands.sh
+./deploy.sh
+
+# 5. Buat admin user
+./create-admin.sh
+
+# 6. Test
+curl http://203.175.10.112
+curl http://203.175.10.112/api/menu
+
+================================================================================
+SELESAI!
+================================================================================
+
+Akses aplikasi di: http://203.175.10.112
+
+Kredensial default:
+- Email: admin@cafe.com
+- Password: admin123
+
+PENTING: Ganti password setelah login pertama!
+
+================================================================================
